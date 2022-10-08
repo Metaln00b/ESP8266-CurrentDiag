@@ -22,6 +22,15 @@ String getSensorReadings()
 {
   readings["sensor1"] = String(ina219.getCurrent_mA());
 
+  // Values from afr gauge documentation
+  // minLambda = 0.683 (and offset)
+  // maxLambda = 1.356
+  // lambdaRange = 0.673
+  // adcRange = 1024 (0 - 5V with 180k resistor) 0.0049/V
+  // 0.673 / 1024 = 0.000657227
+  double lambda = ( (analogRead(A0) * 0.000657227) + 0.683 );
+  readings["sensor2"] = String(lambda);
+
   String jsonString = JSON.stringify(readings);
   return jsonString;
 }

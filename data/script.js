@@ -19,12 +19,13 @@ var chartV = new Highcharts.Chart({
   legend: {
     enabled: true,
     labelFormatter: function() {
-      return this.name + '<br>' + 'Now: ' + '0.0' + ' mA' + '<br>Max: ' + '0.0' + '<br>Min: ' + '0.0' + '<br>Avg: ' + '0.0';
+      return this.name + '<br>' + 'Now: ' + '0.0' + '<br>Max: ' + '0.0' + '<br>Min: ' + '0.0' + '<br>Avg: ' + '0.0';
     }
   },
   series: [
     {
-      name: 'Current #1',
+      yAxis: 0,
+      name: 'Current mA',
       type: 'line',
       color: '#101D42',
       marker: {
@@ -33,6 +34,17 @@ var chartV = new Highcharts.Chart({
         fillColor: '#101D42',
       }
     },
+    {
+      yAxis: 1,
+      name: 'Lambda &#955;',
+      type: 'line',
+      color: '#00A6A6',
+      marker: {
+        symbol: 'circle',
+        radius: 3,
+        fillColor: '#00A6A6',
+      }
+    }
   ],
   title: {
     text: undefined
@@ -41,11 +53,19 @@ var chartV = new Highcharts.Chart({
     type: 'datetime',
     dateTimeLabelFormats: { second: '%H:%M:%S' }
   },
-  yAxis: {
-    title: {
-      text: 'Current mA'
+  yAxis: [
+    { //--- Primary yAxis
+      title: {
+          text: 'Current mA'
+      }
+    },
+    { //--- Secondary yAxis
+      title: {
+          text: 'Lambda &#955;'
+      },
+      opposite: true
     }
-  },
+  ],
   credits: {
     enabled: false
   }
