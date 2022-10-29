@@ -23,7 +23,6 @@ html {
     padding: 5%;
   }
   .card-grid {
-    max-width: 1200px;
     margin: 0 auto;
     display: grid;
     grid-gap: 2rem;
@@ -41,4 +40,12 @@ html {
   .chart-container {
     padding-right: 5%;
     padding-left: 5%;
+  }
+  .hc-cat-title {
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .gauges-container {
+    display: flex;
+    flex-direction: column;
   }
