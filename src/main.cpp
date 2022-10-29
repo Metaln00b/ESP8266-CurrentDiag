@@ -5,6 +5,7 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <Arduino_JSON.h>
+#include <AsyncElegantOTA.h>
 
 const char* ssid = "CurrentDiag";
 
@@ -69,7 +70,10 @@ void setup() {
   if (!ina219.begin())
   {
     Serial.println("Failed to find INA219 chip");
-    while (1) { delay(10); }
+    // while (true)
+    // {
+    //   delay(10);
+    // }
   }
 
   initWiFi();
@@ -96,9 +100,11 @@ void setup() {
     }
     // send event with message "hello!", id current millis
     // and set reconnect delay to 1 second
-    client->send("hello!", NULL, millis(), 10000);
+    client->send("Hello!", NULL, millis(), 10000);
   });
   server.addHandler(&events);
+
+  AsyncElegantOTA.begin(&server);
 
   server.begin();
 }
