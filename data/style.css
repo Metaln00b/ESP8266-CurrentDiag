@@ -1,51 +1,133 @@
 /* Complete project details: https://randomnerdtutorials.com/esp8266-nodemcu-plot-readings-charts-multiple/ */
 
 html {
-    font-family: Arial, Helvetica, sans-serif;
-    display: inline-block;
-    text-align: center;
-  }
-  h1 {
-    font-size: 1.8rem;
-    color: white;
-  }
-  p {
-    font-size: 1.4rem;
-  }
-  .topnav {
-    overflow: hidden;
-    background-color: #0A1128;
-  }
-  body {
-    margin: 0;
-  }
-  .content {
-    padding: 5%;
-  }
-  .card-grid {
-    margin: 0 auto;
-    display: grid;
-    grid-gap: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-  .card {
-    background-color: white;
-    box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
-  }
-  .card-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #034078
-  }
-  .chart-container {
-    padding-right: 5%;
-    padding-left: 5%;
-  }
-  .hc-cat-title {
-    font-size: 13px;
-    font-weight: bold;
-  }
-  .gauges-container {
-    display: flex;
-    flex-direction: column;
-  }
+  font-family: Arial, Helvetica, sans-serif;
+  display: inline-block;
+  text-align: center;
+}
+h1 {
+  font-size: 1.8rem;
+  color: white;
+}
+p {
+  font-size: 1.4rem;
+}
+.topnav {
+  overflow: hidden;
+  background-color: #0A1128;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: .5em;
+  padding-right: .5em;
+}
+body {
+  margin: 0;
+}
+.content {
+  padding: 5%;
+}
+.card-grid {
+  margin: 0 auto;
+  display: grid;
+  grid-gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.card {
+  background-color: white;
+  box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+}
+.card-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #034078
+}
+.chart-container {
+  padding-right: 5%;
+  padding-left: 5%;
+}
+.hc-cat-title {
+  font-size: 13px;
+  font-weight: bold;
+}
+.gauges-container {
+  display: flex;
+  flex-direction: column;
+}
+
+  /* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  min-width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.switch-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  color: white;
+  font-weight: bold;
+}
+
+.switch-container .switch-label {
+  margin-right: .5em;
+}

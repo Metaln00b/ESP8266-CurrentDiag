@@ -1,5 +1,24 @@
 // Complete project details: https://randomnerdtutorials.com/esp8266-nodemcu-plot-readings-charts-multiple/
 var simulation = false;
+var debug = false;
+
+var noSleep = new NoSleep();
+
+var wakeLockEnabled = false;
+var toggleEl = document.querySelector("#toggle");
+toggleEl.addEventListener('click', function() {
+  if (!wakeLockEnabled) {
+    noSleep.enable(); // keep the screen on!
+    wakeLockEnabled = true;
+    toggleEl.checked = true;
+    document.body.style.backgroundColor = "lightgrey";
+  } else {
+    noSleep.disable(); // let the screen turn off.
+    wakeLockEnabled = false;
+    toggleEl.checked = false;
+    document.body.style.backgroundColor = "";
+  }
+}, false);
 
 window.addEventListener('load', getReadings);
 
@@ -221,15 +240,15 @@ function calculateStatistics() {
 
 function plotValues(jsonValue) {
   var keys = Object.keys(jsonValue);
-  console.log(keys);
-  console.log(keys.length);
+  if (debug) { console.log(keys); console.log(keys.length);}
+  
 
   for (var i = 0; i < keys.length; i++) {
     var x = (new Date()).getTime();
-    console.log(x);
+    if (debug) { console.log(x); }
     const key = keys[i];
     var y = Number(jsonValue[key]);
-    console.log(y);
+    if (debug) { console.log(y); }
 
     if (chartV.series[i].data.length > 60) {
       //chartV.series[i].addPoint([x, y], true, true, true);
@@ -280,29 +299,27 @@ if (!!window.EventSource) {
   source.addEventListener('new_readings', function (e) {
     console.log("new_readings", e.data);
     var myObj = JSON.parse(e.data);
-    console.log(myObj);
+    if (debug) { console.log(myObj); }
     plotValues(myObj);
   }, false);
 }
 
 if (simulation) {
-function getRandomFloat(min, max, decimals) {
-  const str = (Math.random() * (max - min) + min).toFixed(decimals);
+  function getRandomFloat(min, max, decimals) {
+    const str = (Math.random() * (max - min) + min).toFixed(decimals);
 
-  return parseFloat(str);
-}
+    return parseFloat(str);
+  }
 
-var count = 1;
-var interval = setInterval(function () {
-  var values =
-    '{' +
-    '"sensor1":"' + getRandomFloat(-80, 120, 0) + '",' +
-    '"sensor2":"' + getRandomFloat(0.6, 1.4, 2) + '"' +
-    '}';
-  var myObj = JSON.parse(values);
+  var count = 1;
+  var interval = setInterval(function () {
+    var values =
+      '{' +
+      '"sensor1":"' + getRandomFloat(-80, 120, 0) + '",' +
+      '"sensor2":"' + getRandomFloat(0.6, 1.4, 2) + '"' +
+      '}';
+    var myObj = JSON.parse(values);
 
-  plotValues(myObj);
-}, 500);
-
-setInterval();
+    plotValues(myObj);
+  }, 500);
 }
