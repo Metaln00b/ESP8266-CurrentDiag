@@ -6,6 +6,7 @@
 #include <ESPAsyncWebServer.h>
 #include <Arduino_JSON.h>
 #include <AsyncElegantOTA.h>
+#include <WiFiUdp.h>
 
 const char* ssid = "CurrentDiag";
 
@@ -19,9 +20,16 @@ unsigned long timerDelay = 500;
 
 Adafruit_INA219 ina219;
 
+IPAddress multicastIP(230, 120, 10, 1);
+constexpr uint16_t PORT = 8266;
+char packetBuffer[255];
+
+WiFiUDP Udp;
+
 String getSensorReadings()
 {
-  readings["sensor1"] = String(ina219.getCurrent_mA());
+  //readings["sensor1"] = String(ina219.getCurrent_mA());
+  readings["sensor1"] = String(22);
 
   // Values from afr gauge documentation
   // minLambda = 0.683 (and offset)
@@ -34,6 +42,12 @@ String getSensorReadings()
 
   String jsonString = JSON.stringify(readings);
   return jsonString;
+}
+
+void sendUdp() {
+  Udp.beginPacketMulticast(multicastIP, PORT, WiFi.localIP());
+  Udp.print(getSensorReadings());
+  Udp.endPacket();
 }
 
 void initLittleFS()
@@ -107,11 +121,14 @@ void setup() {
   AsyncElegantOTA.begin(&server);
 
   server.begin();
+
+  Udp.beginMulticast(WiFi.softAPIP(), multicastIP, PORT);
 }
 
 void loop() {
   if ((millis() - lastTime) > timerDelay) {
     events.send(getSensorReadings().c_str(),"new_readings" ,millis());
     lastTime = millis();
+    sendUdp();
   }
 }
