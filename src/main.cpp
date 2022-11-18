@@ -10,15 +10,19 @@
 #include <WiFiUdp.h>
 
 const char* ssid = "CurrentDiag";
+const char* pass = "123456789";
 
 AsyncWebServer server(80);
 AsyncEventSource events("/events");
 
 JSONVar readings;
 
-unsigned long lastTime = 0;
+unsigned long lastWebTime = 0;
+unsigned long lastUdpTime = 0;
+unsigned long lastDataTime = 0;
 unsigned long webTimerDelay = 500;
-unsigned long udpTimerDelay = 40;
+unsigned long udpTimerDelay = 50;
+unsigned long dataTimerDelay = 50;
 
 Adafruit_INA219 ina219;
 
@@ -27,6 +31,8 @@ constexpr uint16_t PORT = 8266;
 char packetBuffer[255];
 
 WiFiUDP Udp;
+
+String data;
 
 String getSensorReadings()
 {
@@ -45,9 +51,8 @@ String getSensorReadings()
   return jsonString;
 }
 
-void sendUdp() {
+void sendUdp(String data) {
   Udp.beginPacket(broadcastIP, PORT);
-  String data = getSensorReadings();
   Udp.print(data);
   Udp.endPacket();
 }
@@ -124,7 +129,7 @@ void initWiFi()
   else
     Serial.println("softAPConfig: False");
 
-  if (WiFi.softAP(ssid, "123456789", 8))
+  if (WiFi.softAP(ssid, pass, 8))
     Serial.println("softAP: True");
   else
     Serial.println("softAP: False");
@@ -144,10 +149,6 @@ void setup() {
   if (!ina219.begin())
   {
     Serial.println("Failed to find INA219 chip");
-    // while (true)
-    // {
-    //   delay(10);
-    // }
   }
 
   initWiFi();
@@ -162,7 +163,7 @@ void setup() {
 
   server.on("/readings", HTTP_GET, [](AsyncWebServerRequest *request)
   {
-    lastTime = lastTime + webTimerDelay;
+    lastWebTime = lastWebTime + webTimerDelay;
     request->send(200, "text/plain", "OK!");
   });
 
@@ -183,12 +184,22 @@ void setup() {
   server.begin();
 
   Udp.begin(PORT);
+
+  data = getSensorReadings();
 }
 
 void loop() {
-  if ((millis() - lastTime) > webTimerDelay) {
-    events.send(getSensorReadings().c_str(),"new_readings" ,millis());
-    lastTime = millis();
-    sendUdp();
+  if ((millis() - lastDataTime) > dataTimerDelay) {
+    data = getSensorReadings();
+    lastDataTime = millis();
+  }
+
+  if ((millis() - lastWebTime) > webTimerDelay) {
+    events.send(data.c_str(),"new_readings" ,millis());
+    lastWebTime = millis();
+  }
+  if ((millis() - lastUdpTime) > udpTimerDelay) {
+    sendUdp(data);
+    lastUdpTime = millis();
   }
 }
