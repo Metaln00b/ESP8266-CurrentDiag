@@ -70,20 +70,22 @@ socket.bind((str(wifi.radio.ipv4_address), PORT))
 printDisplay("Receiving", 1)
 
 while True:
-    try:
-        buff = bytearray(255)
-        size, addr = socket.recvfrom_into(buff)
-    except Exception as e:
-        printDisplay(str(e), EXDURATION)
-        printDisplay("Try Reconnecting", 1)
-        reconnectCount = reconnectCount+1
-        socket.close()
-        connectWifi()
-        pool = socketpool.SocketPool(wifi.radio)
-        socket = pool.socket(pool.AF_INET, pool.SOCK_DGRAM)
-        socket.settimeout(TIMEOUT)
-        socket.bind((str(wifi.radio.ipv4_address), PORT))
-
+    while True:
+        try:
+            buff = bytearray(255)
+            size, addr = socket.recvfrom_into(buff)
+            break
+        except Exception as e:
+            printDisplay(str(e), EXDURATION)
+            printDisplay("Try Reconnecting", 1)
+            reconnectCount = reconnectCount+1
+            socket.close()
+            connectWifi()
+            pool = socketpool.SocketPool(wifi.radio)
+            socket = pool.socket(pool.AF_INET, pool.SOCK_DGRAM)
+            socket.settimeout(TIMEOUT)
+            socket.bind((str(wifi.radio.ipv4_address), PORT))
+    
     msg = buff.decode('utf-8')
     try:
         data = json.loads(msg)
