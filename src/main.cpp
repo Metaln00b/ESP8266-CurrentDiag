@@ -199,7 +199,7 @@ void loop() {
     lastWebTime = millis();
   }
   if ((millis() - lastUdpTime) > udpTimerDelay) {
-    sendUdp(data);
+    sendUdp(data.c_str());
     lastUdpTime = millis();
   }
 }

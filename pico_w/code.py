@@ -71,6 +71,7 @@ printDisplay("Receiving", 1)
 
 while True:
     try:
+        buff = bytearray(255)
         size, addr = socket.recvfrom_into(buff)
     except Exception as e:
         printDisplay(str(e), EXDURATION)
