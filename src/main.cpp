@@ -21,7 +21,7 @@ unsigned long lastWebTime = 0;
 unsigned long lastUdpTime = 0;
 unsigned long lastDataTime = 0;
 unsigned long webTimerDelay = 500;
-unsigned long udpTimerDelay = 50;
+unsigned long udpTimerDelay = 500;
 unsigned long dataTimerDelay = 50;
 
 Adafruit_INA219 ina219;
