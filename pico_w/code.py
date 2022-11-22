@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2021 Mark Olsson <mark@markolsson.se>
 # SPDX-License-Identifier: MIT
 
+import microcontroller
 import board
 import busio
 import digitalio
@@ -30,7 +31,7 @@ cs = digitalio.DigitalInOut(board.GP16)  # Chip select
 reset = digitalio.DigitalInOut(board.GP20)  # reset
 
 display = ST7565(spi, dc, cs, reset)
-display.contrast = 0
+display.contrast = 3
 
 reconnectCount = 0
 heartBeat = True
@@ -54,6 +55,8 @@ def connectWifi():
             wifi.radio.connect("CurrentDiag", "123456789")
             break
         except Exception as e:
+            if(str(e) == "Unbekannter Fehler 1" ):
+                microcontroller.reset()
             printDisplay(str(e), EXDURATION)
 
 printDisplay("Connecting to wifi", 1)
