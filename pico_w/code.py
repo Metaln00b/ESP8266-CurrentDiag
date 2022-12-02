@@ -55,17 +55,79 @@ def connectWifi():
             wifi.radio.connect("CurrentDiag", "123456789")
             break
         except Exception as e:
-            if(str(e) == "Unbekannter Fehler 1" ):
+            if (str(e) == "Unbekannter Fehler 1" ):
                 microcontroller.reset()
             printDisplay(str(e), EXDURATION)
 
+def drawPercentbar(x, y, width, height, progress):
+    if (progress > 100):
+        progress = 100
+    else:
+        progress = progress
+
+    if (progress < 0):
+        progress = 0
+    else:
+        progress = progress
+
+    bar = ((width-4) / 100) * progress; 
+    display.rect(x, y, width, height, 1)
+    display.fill_rect(x+2, y+2, bar, height-4, 1)
+
+    if (height >= 15):
+        if (progress >= 50):
+            display.text(str(progress), int((width/2) - 3), y + 5, 0, size=1)
+        else:
+            display.text(str(progress), int((width/2) - 3), y + 5, 1, size=1)
+
+def drawPercentbarPlus(x, y, width, height, progress):
+    bar = ((width-4) / 100) * progress; 
+    display.rect(x, y, width, height, 1)
+
+    if (progress < 0):
+        _bar = abs(bar)     
+
+        _x = (width/2)-_bar+2
+        if (_x < 2):
+            _x = 2
+            _bar = (width/2)-2
+        display.fill_rect(int(_x), y+2, int(_bar), height-4, 1)
+    else:
+        _x = (width/2)
+        if (bar > (width/2)):
+            bar = (width/2)-2
+        display.fill_rect(int(_x), y+2, int(bar), height-4, 1)
+
+    if (height >= 15):
+        if (progress >= 0):
+            display.text(str(progress), int(width/8), y+5, 1, size=1)
+        else:
+            display.text(str(progress), int(width/1.5), y+5, 1, size=1)
+    display.vline(int(width/2), y-1, height+2, 1)
+
+p1 = 0
+"""
+display.fill(0)
+while True:
+    #display.fill(0)
+    display.fill_rect(0, 56, 30, 10, 0)
+    display.text(str(p1), 0, 56, 1)
+    display.show()
+    drawPercentbar(0, 0, 128, 10, p1)
+    p1 = p1 + 1
+    if (p1 > 100):
+        display.fill_rect(0, 0, 128, 10, 0)
+        p1 = 0
+    time.sleep(0.1)
+"""
+
 printDisplay("Connecting to wifi", 1)
 connectWifi()
+
 pool = socketpool.SocketPool(wifi.radio)
 buff = bytearray(255)
 
 printDisplay("Creating socket", 1)
-
 socket = pool.socket(pool.AF_INET, pool.SOCK_DGRAM)
 socket.settimeout(TIMEOUT)
 printDisplay("Connecting", 1)
@@ -98,11 +160,13 @@ while True:
     display.fill(0)
     
     try:
-        display.text(data['sensor1'], 0, 0, 1, size=3)
-        display.text(data['sensor2'], 0, 24, 1, size=3)
+        #display.text(data['sensor1'], 0, 0, 1, size=3)
+        #display.text(data['sensor2'], 0, 24, 1, size=3)
+        drawPercentbarPlus(0, 1, 128, 16, float(data['sensor1']))
+        drawPercentbarPlus(0, 20, 128, 16, float(data['sensor2']))
     except Exception as e:
         printDisplay(str(e), EXDURATION)
-    
+
     heartBeat = not heartBeat
     led_onboard.value = not led_onboard.value
     
