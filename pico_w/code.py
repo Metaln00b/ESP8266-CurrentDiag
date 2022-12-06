@@ -110,35 +110,38 @@ def drawPercentbarPlus(x, y, width, height, progress):
 
 
 def drawValuebar(x, y, width, height, valueMin, valueMax, value, vlineValue):
-    valueRange = math.fabs(valueMin) + math.fabs(valueMax)
-    pxPerValue = width / valueRange
-    pxPositionVline = pxPerValue * (vlineValue + math.fabs(valueMin))
+    roundValue = round(value, 2)
+    valueRange = valueMax - valueMin
+    pxPerValue = (width - 4) / valueRange
+    pxPositionVline = int(pxPerValue * (vlineValue - valueMin) + 2)
+    
+    pxPositionValue = int(pxPerValue * (roundValue - valueMin) + 2)
+    start = min(pxPositionValue, pxPositionVline)
+    end = max(pxPositionValue, pxPositionVline)
 
-    pxPositionValue = pxPerValue * (value + math.fabs(valueMin))
     display.rect(x, y, width, height, 1)
+    display.fill_rect(x+start, y+2, end-start, height-4, 1) 
 
-    if (value <= vlineValue):       
-        display.fill_rect(int(pxPositionValue), y+2, int(math.fabs(pxPositionValue-pxPositionVline)), height-4, 1) 
-    else:
-        display.fill_rect(int(pxPositionVline), y+2, int(math.fabs(pxPositionValue-pxPositionVline)), height-4, 1)
-
-
-
+    # if (value <= vlineValue):       
+    #     display.fill_rect(int(x+pxPositionValue+2), y+2, int(math.fabs(pxPositionValue-pxPositionVline)), height-4, 1) 
+    # else:
+    #     display.fill_rect(int(x+pxPositionVline+3), y+2, int(math.fabs(pxPositionValue-pxPositionVline)), height-4, 1)
 
     if (height >= 15):
         if (value >= vlineValue):
-            display.text(str(value), int(width/8), y+5, 1, size=1)
+            display.text(str(f"{roundValue:.2f}"), int(width/8), y+5, 1, size=1)
         else:
-            display.text(str(value), int(width/1.5), y+5, 1, size=1)
-    
-    
+            display.text(str(f"{roundValue:.2f}"), int(width/1.5), y+5, 1, size=1)
+        
     display.vline(int(pxPositionVline), y-1, height+2, 1)
+
+
 
 v1 = -80
 v1_min = -80
 v1_max = 120
 v1_vline = 0
-v2 = 0.6
+v2 = 0.60
 v2_min = 0.6
 v2_max = 1.4
 v2_vline = 1.0
@@ -147,19 +150,6 @@ v1Increase = True
 v2Increase = True
 
 while True:
-    display.fill(0)
-    drawValuebar(0, 1, 128, 16, v1_min, v1_max, v1, v1_vline)
-    drawValuebar(0, 20, 128, 16, v2_min, v2_max, v2, v2_vline)
-    display.show()
-    if (v1Increase):
-        v1 = v1 + 1
-    else:
-        v1 = v1 - 1
-    if (v2Increase):
-        v2 = v2 + 0.1
-    else:
-        v2 = v2 - 0.1
-    
     if (v1 >= v1_max):
         v1Increase = False
     
@@ -172,7 +162,21 @@ while True:
     if (v2 <= v2_min):
         v2Increase = True
 
-    time.sleep(0.5)
+    if (v1Increase):
+        v1 = v1 + 1
+    else:
+        v1 = v1 - 1
+    if (v2Increase):
+        v2 = v2 + 0.05
+    else:
+        v2 = v2 - 0.05
+    
+    display.fill(0)
+    drawValuebar(0, 1, 128, 16, v1_min, v1_max, v1, v1_vline)
+    drawValuebar(0, 20, 128, 16, v2_min, v2_max, v2, v2_vline)
+    display.show()
+
+    time.sleep(0.01)
 
 
 printDisplay("Connecting to wifi", 1)
