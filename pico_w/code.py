@@ -71,11 +71,6 @@ def drawValuebar(x, y, width, height, valueMin, valueMax, value, vlineValue, sho
 
     display.rect(x, y, width, height, 1)
     display.fill_rect(x+start, y+2, end-start, height-4, 1) 
-
-    # if (value <= vlineValue):       
-    #     display.fill_rect(int(x+pxPositionValue+2), y+2, int(math.fabs(pxPositionValue-pxPositionVline)), height-4, 1) 
-    # else:
-    #     display.fill_rect(int(x+pxPositionVline+3), y+2, int(math.fabs(pxPositionValue-pxPositionVline)), height-4, 1)
     
     if (height >= 15 and showNumbers):
         if (value >= vlineValue):
