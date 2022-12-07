@@ -36,6 +36,14 @@ display.contrast = 3
 reconnectCount = 0
 heartBeat = True
 
+v1Min = -80
+v1Max = 120
+v1Vline = 0
+
+v2Min = 0.6
+v2Max = 1.4
+v2Vline = 1.0
+
 def wrap(string, max_width):
     s=''
     for i in range(0,len(string),max_width):
@@ -79,50 +87,6 @@ def drawValuebar(x, y, width, height, valueMin, valueMax, value, vlineValue, sho
             display.text(str(f"{roundValue:.2f}"), int(width/1.5), y+5, 1, size=1)
         
     display.vline(int(pxPositionVline), y-1, height+2, 1)
-
-v1Min = -80
-v1Max = 120
-v1Vline = 0
-
-v2Min = 0.6
-v2Max = 1.4
-v2Vline = 1.0
-
-# v1 = -80
-# v2 = 0.60
-
-# v1Increase = True
-# v2Increase = True
-
-# while True:
-#     if (v1 >= v1Max):
-#         v1Increase = False
-    
-#     if (v1 <= v1Min):
-#         v1Increase = True
-
-#     if (v2 >= v2Max):
-#         v2Increase = False
-    
-#     if (v2 <= v2Min):
-#         v2Increase = True
-
-#     if (v1Increase):
-#         v1 = v1 + 1
-#     else:
-#         v1 = v1 - 1
-#     if (v2Increase):
-#         v2 = v2 + 0.05
-#     else:
-#         v2 = v2 - 0.05
-    
-#     display.fill(0)
-#     drawValuebar(0, 1, 128, 16, v1Min, v1Max, v1, v1Vline, True)
-#     drawValuebar(0, 20, 128, 16, v2Min, v2Max, v2, v2Vline, True)
-#     display.show()
-
-#     time.sleep(0.01)
-
 
 printDisplay("Connecting to wifi", 1)
 connectWifi()
