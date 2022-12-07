@@ -36,6 +36,14 @@ display.contrast = 3
 reconnectCount = 0
 heartBeat = True
 
+v1Min = -80
+v1Max = 120
+v1Vline = 0
+
+v2Min = 0.6
+v2Max = 1.4
+v2Vline = 1.0
+
 def wrap(string, max_width):
     s=''
     for i in range(0,len(string),max_width):
@@ -55,17 +63,38 @@ def connectWifi():
             wifi.radio.connect("CurrentDiag", "123456789")
             break
         except Exception as e:
-            if(str(e) == "Unbekannter Fehler 1" ):
+            if (str(e) == "Unbekannter Fehler 1" ):
                 microcontroller.reset()
             printDisplay(str(e), EXDURATION)
 
+def drawValuebar(x, y, width, height, valueMin, valueMax, value, vlineValue, showNumbers):
+    roundValue = round(value, 2)
+    valueRange = valueMax - valueMin
+    pxPerValue = (width - 4) / valueRange
+    pxPositionVline = int(pxPerValue * (vlineValue - valueMin) + 2)
+    
+    pxPositionValue = int(pxPerValue * (roundValue - valueMin) + 2)
+    start = min(pxPositionValue, pxPositionVline)
+    end = max(pxPositionValue, pxPositionVline)
+
+    display.rect(x, y, width, height, 1)
+    display.fill_rect(x+start, y+2, end-start, height-4, 1) 
+    
+    if (height >= 15 and showNumbers):
+        if (value >= vlineValue):
+            display.text(str(f"{roundValue:.2f}"), int(width/9), y+5, 1, size=1)
+        else:
+            display.text(str(f"{roundValue:.2f}"), int(width/1.5), y+5, 1, size=1)
+        
+    display.vline(int(pxPositionVline), y-1, height+2, 1)
+
 printDisplay("Connecting to wifi", 1)
 connectWifi()
+
 pool = socketpool.SocketPool(wifi.radio)
 buff = bytearray(255)
 
 printDisplay("Creating socket", 1)
-
 socket = pool.socket(pool.AF_INET, pool.SOCK_DGRAM)
 socket.settimeout(TIMEOUT)
 printDisplay("Connecting", 1)
@@ -98,11 +127,13 @@ while True:
     display.fill(0)
     
     try:
-        display.text(data['sensor1'], 0, 0, 1, size=3)
-        display.text(data['sensor2'], 0, 24, 1, size=3)
+        display.text(data['sensor1'], 2, 38, 1, size=2)
+        display.text(data['sensor2'], int(display.width/2)+2, 38, 1, size=2)
+        drawValuebar(0, 1, 128, 16, v1Min, v1Max, float(data['sensor1']), v1Vline, False)
+        drawValuebar(0, 20, 128, 16, v2Min, v2Max, float(data['sensor2']), v2Vline, False)
     except Exception as e:
         printDisplay(str(e), EXDURATION)
-    
+
     heartBeat = not heartBeat
     led_onboard.value = not led_onboard.value
     
