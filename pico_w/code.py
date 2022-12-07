@@ -11,7 +11,6 @@ import socketpool
 from st7565 import ST7565
 import time
 import wifi
-import math
 
 EXDURATION = 2
 TIMEOUT = 2
@@ -60,56 +59,7 @@ def connectWifi():
                 microcontroller.reset()
             printDisplay(str(e), EXDURATION)
 
-def drawPercentbar(x, y, width, height, progress):
-    if (progress > 100):
-        progress = 100
-    else:
-        progress = progress
-
-    if (progress < 0):
-        progress = 0
-    else:
-        progress = progress
-
-    bar = ((width-4) / 100) * progress; 
-    display.rect(x, y, width, height, 1)
-    display.fill_rect(x+2, y+2, bar, height-4, 1)
-
-    if (height >= 15):
-        if (progress >= 50):
-            display.text(str(progress), int((width/2) - 3), y + 5, 0, size=1)
-        else:
-            display.text(str(progress), int((width/2) - 3), y + 5, 1, size=1)
-
-def drawPercentbarPlus(x, y, width, height, progress):
-    bar = ((width-4) / 100) * progress; 
-    display.rect(x, y, width, height, 1)
-
-    if (progress < 0):
-        _bar = abs(bar)     
-
-        _x = (width/2)-_bar+2
-        if (_x < 2):
-            _x = 2
-            _bar = (width/2)-2
-        display.fill_rect(int(_x), y+2, int(_bar), height-4, 1)
-    else:
-        _x = (width/2)
-        if (bar > (width/2)):
-            bar = (width/2)-2
-        display.fill_rect(int(_x), y+2, int(bar), height-4, 1)
-
-    if (height >= 15):
-        if (progress >= 0):
-            display.text(str(progress), int(width/8), y+5, 1, size=1)
-        else:
-            display.text(str(progress), int(width/1.5), y+5, 1, size=1)
-    display.vline(int(width/2), y-1, height+2, 1)
-
-
-
-
-def drawValuebar(x, y, width, height, valueMin, valueMax, value, vlineValue):
+def drawValuebar(x, y, width, height, valueMin, valueMax, value, vlineValue, showNumbers):
     roundValue = round(value, 2)
     valueRange = valueMax - valueMin
     pxPerValue = (width - 4) / valueRange
@@ -126,57 +76,57 @@ def drawValuebar(x, y, width, height, valueMin, valueMax, value, vlineValue):
     #     display.fill_rect(int(x+pxPositionValue+2), y+2, int(math.fabs(pxPositionValue-pxPositionVline)), height-4, 1) 
     # else:
     #     display.fill_rect(int(x+pxPositionVline+3), y+2, int(math.fabs(pxPositionValue-pxPositionVline)), height-4, 1)
-
-    if (height >= 15):
+    
+    if (height >= 15 and showNumbers):
         if (value >= vlineValue):
-            display.text(str(f"{roundValue:.2f}"), int(width/8), y+5, 1, size=1)
+            display.text(str(f"{roundValue:.2f}"), int(width/9), y+5, 1, size=1)
         else:
             display.text(str(f"{roundValue:.2f}"), int(width/1.5), y+5, 1, size=1)
         
     display.vline(int(pxPositionVline), y-1, height+2, 1)
 
+v1Min = -80
+v1Max = 120
+v1Vline = 0
 
+v2Min = 0.6
+v2Max = 1.4
+v2Vline = 1.0
 
-v1 = -80
-v1_min = -80
-v1_max = 120
-v1_vline = 0
-v2 = 0.60
-v2_min = 0.6
-v2_max = 1.4
-v2_vline = 1.0
+# v1 = -80
+# v2 = 0.60
 
-v1Increase = True
-v2Increase = True
+# v1Increase = True
+# v2Increase = True
 
-while True:
-    if (v1 >= v1_max):
-        v1Increase = False
+# while True:
+#     if (v1 >= v1Max):
+#         v1Increase = False
     
-    if (v1 <= v1_min):
-        v1Increase = True
+#     if (v1 <= v1Min):
+#         v1Increase = True
 
-    if (v2 >= v2_max):
-        v2Increase = False
+#     if (v2 >= v2Max):
+#         v2Increase = False
     
-    if (v2 <= v2_min):
-        v2Increase = True
+#     if (v2 <= v2Min):
+#         v2Increase = True
 
-    if (v1Increase):
-        v1 = v1 + 1
-    else:
-        v1 = v1 - 1
-    if (v2Increase):
-        v2 = v2 + 0.05
-    else:
-        v2 = v2 - 0.05
+#     if (v1Increase):
+#         v1 = v1 + 1
+#     else:
+#         v1 = v1 - 1
+#     if (v2Increase):
+#         v2 = v2 + 0.05
+#     else:
+#         v2 = v2 - 0.05
     
-    display.fill(0)
-    drawValuebar(0, 1, 128, 16, v1_min, v1_max, v1, v1_vline)
-    drawValuebar(0, 20, 128, 16, v2_min, v2_max, v2, v2_vline)
-    display.show()
+#     display.fill(0)
+#     drawValuebar(0, 1, 128, 16, v1Min, v1Max, v1, v1Vline, True)
+#     drawValuebar(0, 20, 128, 16, v2Min, v2Max, v2, v2Vline, True)
+#     display.show()
 
-    time.sleep(0.01)
+#     time.sleep(0.01)
 
 
 printDisplay("Connecting to wifi", 1)
@@ -218,10 +168,10 @@ while True:
     display.fill(0)
     
     try:
-        display.text(data['sensor1'], 0, 0, 1, size=3)
-        display.text(data['sensor2'], 0, 24, 1, size=3)
-        #drawPercentbarPlus(0, 1, 128, 16, float(data['sensor1']))
-        #drawPercentbarPlus(0, 20, 128, 16, float(data['sensor2']))
+        display.text(data['sensor1'], 2, 38, 1, size=2)
+        display.text(data['sensor2'], int(display.width/2)+2, 38, 1, size=2)
+        drawValuebar(0, 1, 128, 16, v1Min, v1Max, float(data['sensor1']), v1Vline, False)
+        drawValuebar(0, 20, 128, 16, v2Min, v2Max, float(data['sensor2']), v2Vline, False)
     except Exception as e:
         printDisplay(str(e), EXDURATION)
 
