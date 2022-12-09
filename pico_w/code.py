@@ -69,6 +69,8 @@ def connectWifi():
 
 def drawValuebar(x, y, width, height, valueMin, valueMax, value, vlineValue, showNumbers):
     roundValue = round(value, 2)
+    roundValue = max(min(valueMax, roundValue), valueMin)
+
     valueRange = valueMax - valueMin
     pxPerValue = (width - 4) / valueRange
     pxPositionVline = int(pxPerValue * (vlineValue - valueMin) + 2)
