@@ -129,18 +129,19 @@ while True:
     display.fill(0)
     
     try:
-        display.text(data['sensor1'], 2, 38, 1, size=2)
-        display.text(data['sensor2'], int(display.width/2)+2, 38, 1, size=2)
-        drawValuebar(0, 1, 128, 16, v1Min, v1Max, float(data['sensor1']), v1Vline, False)
-        drawValuebar(0, 20, 128, 16, v2Min, v2Max, float(data['sensor2']), v2Vline, False)
+        
+        display.text("Actuator: " + data['sensor1'] + "mA", 0, 0, 1)
+        drawValuebar(0, 10, 128, 12, v1Min, v1Max, float(data['sensor1']), v1Vline, False)
+        display.text("Lambda: " + data['sensor2'], 0, 26, 1)
+        drawValuebar(0, 36, 128, 12, v2Min, v2Max, float(data['sensor2']), v2Vline, False)
     except Exception as e:
         printDisplay(str(e), EXDURATION)
 
     heartBeat = not heartBeat
-    led_onboard.value = not led_onboard.value
+    #led_onboard.value = not led_onboard.value
     
     if (heartBeat):
         display.pixel(display.width - 1, display.height - 1, 1)
     
-    display.text(str(reconnectCount), 0, 56, 1)
+    #display.text(str(reconnectCount), 0, 56, 1)
     display.show()
