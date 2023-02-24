@@ -1,3 +1,24 @@
+# SPDX-FileCopyrightText: 2018 Tony DiCola for Adafruit Industries
+# SPDX-FileCopyrightText: 2018 ladyada for Adafruit Industries
+# SPDX-FileCopyrightText: 2021 Mark Olsson <mark@markolsson.se>
+#
+# SPDX-License-Identifier: MIT
+
+"""
+`adafruit_st7565`
+====================================================
+A display control library for ST7565 graphic displays
+* Author(s): ladyada, Mark Olsson
+Implementation Notes
+--------------------
+**Hardware:**
+* `ST7565 graphic display <https://www.adafruit.com/product/250>`_
+**Software and Dependencies:**
+* Adafruit CircuitPython firmware for the supported boards:
+  https://github.com/adafruit/circuitpython/releases
+* Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
+"""
+
 import time
 from micropython import const
 from adafruit_bus_device import spi_device
