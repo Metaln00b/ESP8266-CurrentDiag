@@ -9,7 +9,7 @@ I am using the *AFR Wideband Kit from DepoRacing with an OLED 52772WBOLED*
 
 ![Web GUI](screenshots/currentDiag.png)
 
-Lastly, I added a UDP connection, which transmits the values at a higher update rate, compared to the WebGui. For this I use a RaspberryPi Pico W with an Adafruit library for CircuitPython. The ESP8266 is the server and the Pico W is the client.
+Lastly, I added a UDP connection, which transmits the values at a higher update rate, compared to the WebGui. For this I use a RaspberryPi Pico W with an Adafruit library for CircuitPython 8.0.3. The ESP8266 is the server and the Pico W is the client.
 
 ![Pico W UDP Front](screenshots/picoWFront.jpg)
 
