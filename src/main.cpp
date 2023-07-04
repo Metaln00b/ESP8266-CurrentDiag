@@ -5,7 +5,7 @@
 #include <ESP8266WiFiAP.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <Arduino_JSON.h>
+#include <ArduinoJson.h>
 #include <AsyncElegantOTA.h>
 #include <WiFiUdp.h>
 
@@ -14,8 +14,6 @@ const char* pass = "123456789";
 
 AsyncWebServer server(80);
 AsyncEventSource events("/events");
-
-JSONVar readings;
 
 unsigned long lastWebTime = 0;
 unsigned long lastUdpTime = 0;
@@ -36,6 +34,7 @@ String data;
 
 String getSensorReadings()
 {
+  StaticJsonDocument<64> readings;
   //readings["sensor1"] = String(ina219.getCurrent_mA());
   readings["sensor1"] = String(random(-80, 120));
   // Values from afr gauge documentation
@@ -48,7 +47,9 @@ String getSensorReadings()
   //readings["sensor2"] = String(lambda);
   readings["sensor2"] = String((random(6, 14) / 10.0));
 
-  String jsonString = JSON.stringify(readings);
+  String jsonString;
+  serializeJson(readings, jsonString);
+
   return jsonString;
 }
 
@@ -164,13 +165,12 @@ void setup() {
 
   server.on("/readings", HTTP_GET, [](AsyncWebServerRequest *request)
   {
-    lastWebTime = lastWebTime + webTimerDelay;
     request->send(200, "text/plain", "OK!");
   });
 
   events.onConnect([](AsyncEventSourceClient *client)
   {
-    if(client->lastId())
+    if (client->lastId())
     {
       Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
     }
@@ -190,16 +190,18 @@ void setup() {
 }
 
 void loop() {
-  if ((millis() - lastDataTime) > dataTimerDelay) {
+  unsigned long currentMillis = millis();
+  if ((currentMillis - lastDataTime) > dataTimerDelay) {
     data = getSensorReadings();
     lastDataTime += dataTimerDelay;
   }
 
-  if ((millis() - lastWebTime) > webTimerDelay) {
+  if ((currentMillis - lastWebTime) > webTimerDelay) {
     events.send(data.c_str(),"new_readings" ,millis());
     lastWebTime += webTimerDelay;
   }
-  if ((millis() - lastUdpTime) > udpTimerDelay) {
+
+  if ((currentMillis - lastUdpTime) > udpTimerDelay) {
     sendUdp(data.c_str());
     lastUdpTime += udpTimerDelay;
   }
