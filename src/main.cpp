@@ -36,8 +36,8 @@ String data;
 
 String getSensorReadings()
 {
-  readings["sensor1"] = String(ina219.getCurrent_mA());
-
+  //readings["sensor1"] = String(ina219.getCurrent_mA());
+  readings["sensor1"] = String(random(-80, 120));
   // Values from afr gauge documentation
   // minLambda = 0.683 (and offset)
   // maxLambda = 1.356
@@ -45,7 +45,8 @@ String getSensorReadings()
   // adcRange = 1024 (0 - 5V with 180k resistor) 0.0049/V
   // 0.673 / 1024 = 0.000657227
   double lambda = ( (analogRead(A0) * 0.000657227) + 0.683 );
-  readings["sensor2"] = String(lambda);
+  //readings["sensor2"] = String(lambda);
+  readings["sensor2"] = String((random(6, 14) / 10.0));
 
   String jsonString = JSON.stringify(readings);
   return jsonString;
@@ -191,15 +192,15 @@ void setup() {
 void loop() {
   if ((millis() - lastDataTime) > dataTimerDelay) {
     data = getSensorReadings();
-    lastDataTime = millis();
+    lastDataTime += dataTimerDelay;
   }
 
   if ((millis() - lastWebTime) > webTimerDelay) {
     events.send(data.c_str(),"new_readings" ,millis());
-    lastWebTime = millis();
+    lastWebTime += webTimerDelay;
   }
   if ((millis() - lastUdpTime) > udpTimerDelay) {
     sendUdp(data.c_str());
-    lastUdpTime = millis();
+    lastUdpTime += udpTimerDelay;
   }
 }
