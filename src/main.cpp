@@ -27,33 +27,36 @@ Adafruit_INA219 ina219;
 IPAddress broadcastIP(192, 168, 4, 255);
 constexpr uint16_t PORT = 8266;
 char packetBuffer[255];
+char sensorData[128];
 
 WiFiUDP Udp;
 
-String data;
-
-String getSensorReadings()
+void getSensorReadings(char* output, size_t outputSize)
 {
   StaticJsonDocument<64> readings;
-  //readings["sensor1"] = String(ina219.getCurrent_mA());
-  readings["sensor1"] = String(random(-80, 120));
+  float current_mA = ina219.getCurrent_mA();
   // Values from afr gauge documentation
   // minLambda = 0.683 (and offset)
   // maxLambda = 1.356
   // lambdaRange = 0.673
   // adcRange = 1024 (0 - 5V with 180k resistor) 0.0049/V
   // 0.673 / 1024 = 0.000657227
-  double lambda = ( (analogRead(A0) * 0.000657227) + 0.683 );
-  //readings["sensor2"] = String(lambda);
-  readings["sensor2"] = String((random(6, 14) / 10.0));
+  float lambda = ( (analogRead(A0) * 0.000657227) + 0.683 );
 
-  String jsonString;
-  serializeJson(readings, jsonString);
+  char sensor1ValueStr[10];
+  char sensor2ValueStr[10];
+  dtostrf(current_mA, 6, 2, sensor1ValueStr);
+  dtostrf(lambda, 3, 2, sensor2ValueStr);
 
-  return jsonString;
+  readings["sensor1"] = sensor1ValueStr;
+  //readings["sensor1"] = random(-80, 120);
+  readings["sensor2"] = sensor2ValueStr;
+  //readings["sensor2"] = random(6, 14) / 10.0;
+
+  serializeJson(readings, output, outputSize);
 }
 
-void sendUdp(String data) {
+void sendUdp(const char* data) {
   Udp.beginPacket(broadcastIP, PORT);
   Udp.print(data);
   Udp.endPacket();
@@ -63,11 +66,11 @@ void initLittleFS()
 {
   if (!LittleFS.begin())
   {
-    Serial.println("An error has occurred while mounting LittleFS");
+    Serial.println(F("An error has occurred while mounting LittleFS"));
   }
   else
   {
-    Serial.println("LittleFS mounted successfully");
+    Serial.println(F("LittleFS mounted successfully"));
   }
 }
 
@@ -83,7 +86,7 @@ void showClients()
   number_client = wifi_softap_get_station_num();
   stat_info = wifi_softap_get_station_info();
   
-  Serial.print("Connected clients: ");
+  Serial.print(F("Connected clients: "));
   Serial.println(number_client);
 
   while (stat_info != NULL)
@@ -92,9 +95,9 @@ void showClients()
       address = IPaddress->addr;
 
       Serial.print(cnt);
-      Serial.print(": IP: ");
+      Serial.print(F(": IP: "));
       Serial.print((address));
-      Serial.print(" MAC: ");
+      Serial.print(F(" MAC: "));
 
       uint8_t *p = stat_info->bssid;
       Serial.printf("%02X:%02X:%02X:%02X:%02X:%02X", p[0], p[1], p[2], p[3], p[4], p[5]);
@@ -121,23 +124,23 @@ void eventCb(System_Event_t *evt)
 
 void initWiFi()
 {
-  Serial.println("Setting soft-AP ... ");
+  Serial.println(F("Setting soft-AP ... "));
   wifi_set_event_handler_cb(eventCb);
 
   IPAddress apIP(192, 168, 4, 1);
 
   if (WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0)))
-    Serial.println("softAPConfig: True");
+    Serial.println(F("softAPConfig: True"));
   else
-    Serial.println("softAPConfig: False");
+    Serial.println(F("softAPConfig: False"));
 
   if (WiFi.softAP(ssid, pass, 8))
-    Serial.println("softAP: True");
+    Serial.println(F("softAP: True"));
   else
-    Serial.println("softAP: False");
+    Serial.println(F("softAP: False"));
   
   IPAddress IP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
+  Serial.print(F("AP IP address: "));
   Serial.println(IP);
 }
 
@@ -150,7 +153,7 @@ void setup() {
 
   if (!ina219.begin())
   {
-    Serial.println("Failed to find INA219 chip");
+    Serial.println(F("Failed to find INA219 chip"));
   }
 
   initWiFi();
@@ -186,23 +189,26 @@ void setup() {
 
   Udp.begin(PORT);
 
-  data = getSensorReadings();
+  getSensorReadings(sensorData, sizeof(sensorData));
 }
 
 void loop() {
   unsigned long currentMillis = millis();
+
   if ((currentMillis - lastDataTime) > dataTimerDelay) {
-    data = getSensorReadings();
+    getSensorReadings(sensorData, sizeof(sensorData));
     lastDataTime += dataTimerDelay;
   }
 
   if ((currentMillis - lastWebTime) > webTimerDelay) {
-    events.send(data.c_str(),"new_readings" ,millis());
+    events.send(sensorData, "new_readings", millis());
     lastWebTime += webTimerDelay;
   }
 
   if ((currentMillis - lastUdpTime) > udpTimerDelay) {
-    sendUdp(data.c_str());
+    sendUdp(sensorData);
     lastUdpTime += udpTimerDelay;
   }
+  
+  yield();
 }
