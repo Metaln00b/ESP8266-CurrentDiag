@@ -6,7 +6,7 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
-#include <AsyncElegantOTA.h>
+#include <ElegantOTA.h>
 #include <WiFiUdp.h>
 
 const char* ssid = "CurrentDiag";
@@ -183,7 +183,7 @@ void setup() {
   });
   server.addHandler(&events);
 
-  AsyncElegantOTA.begin(&server);
+  ElegantOTA.begin(&server);
 
   server.begin();
 
