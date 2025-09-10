@@ -9,6 +9,8 @@
 #include <ElegantOTA.h>
 #include <WiFiUdp.h>
 
+#define DEBUG
+
 const char* ssid = "CurrentDiag";
 const char* pass = "123456789";
 
@@ -19,10 +21,12 @@ unsigned long lastWebTime = 0;
 unsigned long lastUdpTime = 0;
 unsigned long lastDataTime = 0;
 unsigned long webTimerDelay = 500;
-unsigned long udpTimerDelay = 500;
+unsigned long udpTimerDelay = 50;
 unsigned long dataTimerDelay = 50;
 
+#ifndef DEBUG 
 Adafruit_INA219 ina219;
+#endif
 
 IPAddress broadcastIP(192, 168, 4, 255);
 constexpr uint16_t PORT = 8266;
@@ -34,6 +38,7 @@ WiFiUDP Udp;
 void getSensorReadings(char* output, size_t outputSize)
 {
   StaticJsonDocument<64> readings;
+#ifndef DEBUG 
   float current_mA = ina219.getCurrent_mA();
   // Values from afr gauge documentation
   // minLambda = 0.683 (and offset)
@@ -42,16 +47,17 @@ void getSensorReadings(char* output, size_t outputSize)
   // adcRange = 1024 (0 - 5V with 180k resistor) 0.0049/V
   // 0.673 / 1024 = 0.000657227
   float lambda = ( (analogRead(A0) * 0.000657227) + 0.683 );
-
+#else
+  float current_mA = random(-80, 120);
+  float lambda = random(6, 14) / 10.0;
+#endif
   char sensor1ValueStr[10];
   char sensor2ValueStr[10];
   dtostrf(current_mA, 6, 2, sensor1ValueStr);
   dtostrf(lambda, 3, 2, sensor2ValueStr);
 
   readings["sensor1"] = sensor1ValueStr;
-  //readings["sensor1"] = random(-80, 120);
   readings["sensor2"] = sensor2ValueStr;
-  //readings["sensor2"] = random(6, 14) / 10.0;
 
   serializeJson(readings, output, outputSize);
 }
@@ -150,11 +156,12 @@ void setup() {
   {
     ; // Needed for native USB port only
   }
-
+#ifndef DEBUG
   if (!ina219.begin())
   {
     Serial.println(F("Failed to find INA219 chip"));
   }
+#endif
 
   initWiFi();
   initLittleFS();
@@ -180,7 +187,10 @@ void setup() {
     // send event with message "hello!", id current millis
     // and set reconnect delay to 1 second
     client->send("Hello!", NULL, millis(), 10000);
+    Serial.println("Client connected!");
   });
+
+
   server.addHandler(&events);
 
   ElegantOTA.begin(&server);
@@ -197,6 +207,7 @@ void loop() {
 
   if ((currentMillis - lastDataTime) > dataTimerDelay) {
     getSensorReadings(sensorData, sizeof(sensorData));
+    sendUdp(sensorData);
     lastDataTime += dataTimerDelay;
   }
 
@@ -205,10 +216,10 @@ void loop() {
     lastWebTime += webTimerDelay;
   }
 
-  if ((currentMillis - lastUdpTime) > udpTimerDelay) {
+  /* if ((currentMillis - lastUdpTime) > udpTimerDelay) {
     sendUdp(sensorData);
     lastUdpTime += udpTimerDelay;
-  }
+  } */
   
   yield();
 }
