@@ -21,7 +21,7 @@ unsigned long lastWebTime = 0;
 unsigned long lastUdpTime = 0;
 unsigned long lastDataTime = 0;
 unsigned long webTimerDelay = 500;
-unsigned long udpTimerDelay = 50;
+//unsigned long udpTimerDelay = 50;
 unsigned long dataTimerDelay = 50;
 
 #ifndef DEBUG
@@ -34,6 +34,15 @@ char packetBuffer[255];
 char sensorData[128];
 
 WiFiUDP Udp;
+
+// The ESP8266 SoftAP driver queues broadcast/multicast frames and only
+// releases them aligned to its beacon/DTIM interval, regardless of the
+// station's own sleep settings - that's what made UDP packets arrive at the
+// receiver in ~300ms bursts instead of steadily. Sending unicast to the
+// known receiver IP instead skips that batching. Falls back to broadcast
+// until a station has actually connected.
+IPAddress receiverIP = broadcastIP;
+bool haveReceiverIP = false;
 
 void getSensorReadings(char *output, size_t outputSize)
 {
@@ -64,7 +73,7 @@ void getSensorReadings(char *output, size_t outputSize)
 
 void sendUdp(const char *data)
 {
-    Udp.beginPacket(broadcastIP, PORT);
+    Udp.beginPacket(haveReceiverIP ? receiverIP : broadcastIP, PORT);
     Udp.print(data);
     Udp.endPacket();
 }
@@ -96,10 +105,18 @@ void showClients()
     Serial.print(F("Connected clients: "));
     Serial.println(number_client);
 
+    haveReceiverIP = false;
+
     while (stat_info != NULL)
     {
         IPaddress = &stat_info->ip;
         address = IPaddress->addr;
+
+        if (!haveReceiverIP)
+        {
+            receiverIP = address;
+            haveReceiverIP = true;
+        }
 
         Serial.print(cnt);
         Serial.print(F(": IP: "));
