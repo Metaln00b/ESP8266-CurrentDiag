@@ -9,8 +9,6 @@
 #include <ElegantOTA.h>
 #include <WiFiUdp.h>
 
-#define DEBUG
-
 const char *ssid = "CurrentDiag";
 const char *pass = "123456789";
 
