@@ -296,13 +296,6 @@ void loop()
         lastWebTime += webTimerDelay;
     }
 
-    static unsigned long lastHeapLog = 0;
-    if (currentMillis - lastHeapLog > 5000)
-    {
-        lastHeapLog = currentMillis;
-        Serial.printf("heap free=%u maxblock=%u sse_clients=%u\n", ESP.getFreeHeap(), ESP.getMaxFreeBlockSize(), (unsigned)events.count());
-    }
-
     /* if ((currentMillis - lastUdpTime) > udpTimerDelay) {
       sendUdp(sensorData);
       lastUdpTime += udpTimerDelay;
