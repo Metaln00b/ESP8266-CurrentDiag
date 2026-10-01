@@ -283,7 +283,9 @@ void loop()
 
     if ((currentMillis - lastWebTime) > webTimerDelay)
     {
-        if (events.count() > 0 && webBatchLen > 0)
+        // Skip the batch when the browsers can't keep up or the heap is low,
+        // instead of piling up queued messages
+        if (events.count() > 0 && webBatchLen > 0 && events.avgPacketsWaiting() < 4 && ESP.getFreeHeap() > 8000)
         {
             webBatch[webBatchLen - 1] = '\0'; // strip trailing comma
             char payload[BATCH_SIZE + 40];
@@ -292,6 +294,13 @@ void loop()
         }
         webBatchLen = 0;
         lastWebTime += webTimerDelay;
+    }
+
+    static unsigned long lastHeapLog = 0;
+    if (currentMillis - lastHeapLog > 5000)
+    {
+        lastHeapLog = currentMillis;
+        Serial.printf("heap free=%u maxblock=%u sse_clients=%u\n", ESP.getFreeHeap(), ESP.getMaxFreeBlockSize(), (unsigned)events.count());
     }
 
     /* if ((currentMillis - lastUdpTime) > udpTimerDelay) {
