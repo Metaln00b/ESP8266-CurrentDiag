@@ -9,6 +9,7 @@
 #include <ElegantOTA.h>
 #include <WiFiUdp.h>
 
+
 const char *ssid = "CurrentDiag";
 const char *pass = "123456789";
 
@@ -18,7 +19,7 @@ AsyncEventSource events("/events");
 unsigned long lastWebTime = 0;
 unsigned long lastUdpTime = 0;
 unsigned long lastDataTime = 0;
-unsigned long webTimerDelay = 500;
+unsigned long webTimerDelay = 250;
 //unsigned long udpTimerDelay = 50;
 unsigned long dataTimerDelay = 50;
 
@@ -37,10 +38,19 @@ WiFiUDP Udp;
 // releases them aligned to its beacon/DTIM interval, regardless of the
 // station's own sleep settings - that's what made UDP packets arrive at the
 // receiver in ~300ms bursts instead of steadily. Sending unicast to the
-// known receiver IP instead skips that batching. Falls back to broadcast
+// connected stations instead skips that batching. Every station gets its own
+// copy, so several displays work at the same time. Falls back to broadcast
 // until a station has actually connected.
-IPAddress receiverIP = broadcastIP;
-bool haveReceiverIP = false;
+constexpr uint8_t MAX_RECEIVERS = 4; // SoftAP station limit
+IPAddress receivers[MAX_RECEIVERS];
+volatile uint8_t receiverCount = 0;
+
+// Samples collected since the last web event, e.g. "[1.00,0.90],[2.00,0.91],"
+// The browser gets them in one batch so the chart keeps full resolution
+// while it only has to redraw a few times per second.
+constexpr size_t BATCH_SIZE = 640;
+char webBatch[BATCH_SIZE];
+size_t webBatchLen = 0;
 
 void getSensorReadings(char *output, size_t outputSize)
 {
@@ -99,13 +109,31 @@ void getSensorReadings(char *output, size_t outputSize)
     readings["sensor2"] = sensor2ValueStr;
 
     serializeJson(readings, output, outputSize);
+
+    // Append to web batch, drop the sample if the browser isn't keeping up
+    int n = snprintf(webBatch + webBatchLen, BATCH_SIZE - webBatchLen, "[%s,%s],",
+                     sensor1ValueStr, sensor2ValueStr);
+    if (n > 0 && webBatchLen + n < BATCH_SIZE)
+        webBatchLen += n;
 }
 
 void sendUdp(const char *data)
 {
-    Udp.beginPacket(haveReceiverIP ? receiverIP : broadcastIP, PORT);
-    Udp.print(data);
-    Udp.endPacket();
+    uint8_t count = receiverCount;
+    if (count == 0)
+    {
+        Udp.beginPacket(broadcastIP, PORT);
+        Udp.print(data);
+        Udp.endPacket();
+        return;
+    }
+
+    for (uint8_t i = 0; i < count; i++)
+    {
+        Udp.beginPacket(receivers[i], PORT);
+        Udp.print(data);
+        Udp.endPacket();
+    }
 }
 
 void initLittleFS()
@@ -135,18 +163,15 @@ void showClients()
     Serial.print(F("Connected clients: "));
     Serial.println(number_client);
 
-    haveReceiverIP = false;
+    uint8_t count = 0;
 
     while (stat_info != NULL)
     {
         IPaddress = &stat_info->ip;
         address = IPaddress->addr;
 
-        if (!haveReceiverIP)
-        {
-            receiverIP = address;
-            haveReceiverIP = true;
-        }
+        if (count < MAX_RECEIVERS)
+            receivers[count++] = address;
 
         Serial.print(cnt);
         Serial.print(F(": IP: "));
@@ -160,6 +185,9 @@ void showClients()
         cnt++;
         Serial.println();
     }
+
+    receiverCount = count;
+    wifi_softap_free_station_info(); // list is allocated by the SDK
 }
 
 void eventCb(System_Event_t *evt)
@@ -220,9 +248,6 @@ void setup()
 
     server.serveStatic("/", LittleFS, "/");
 
-    server.on("/readings", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(200, "text/plain", "OK!"); });
-
     events.onConnect([](AsyncEventSourceClient *client)
                      {
     if (client->lastId())
@@ -231,7 +256,7 @@ void setup()
     }
     // send event with message "hello!", id current millis
     // and set reconnect delay to 1 second
-    client->send("Hello!", NULL, millis(), 10000);
+    client->send("Hello!", NULL, millis(), 1000);
     Serial.println("Client connected!"); });
 
     server.addHandler(&events);
@@ -258,7 +283,14 @@ void loop()
 
     if ((currentMillis - lastWebTime) > webTimerDelay)
     {
-        events.send(sensorData, "new_readings", millis());
+        if (events.count() > 0 && webBatchLen > 0)
+        {
+            webBatch[webBatchLen - 1] = '\0'; // strip trailing comma
+            char payload[BATCH_SIZE + 40];
+            snprintf(payload, sizeof(payload), "{\"dt\":%lu,\"d\":[%s]}", dataTimerDelay, webBatch);
+            events.send(payload, "new_readings", millis());
+        }
+        webBatchLen = 0;
         lastWebTime += webTimerDelay;
     }
 
