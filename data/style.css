@@ -1,9 +1,29 @@
 /* Complete project details: https://randomnerdtutorials.com/esp8266-nodemcu-plot-readings-charts-multiple/ */
 
+:root {
+  --bg: #fff;
+  --bg-awake: lightgrey;
+  --card: #fff;
+  --text: #222;
+  --title: #034078;
+  --muted: #666;
+  --shadow: rgba(140,140,140,.5);
+}
+:root[data-theme="dark"] {
+  --bg: #000;
+  --bg-awake: #000;
+  --card: #111;
+  --text: #e6e6e6;
+  --title: #6ea8fe;
+  --muted: #999;
+  --shadow: rgba(0,0,0,0);
+}
 html {
   font-family: Arial, Helvetica, sans-serif;
   display: inline-block;
   text-align: center;
+  background: var(--bg);
+  color: var(--text);
 }
 h1 {
   font-size: 1.8rem;
@@ -24,6 +44,10 @@ p {
 }
 body {
   margin: 0;
+  background: var(--bg);
+}
+body.awake {
+  background: var(--bg-awake);
 }
 .content {
   padding: 5%;
@@ -35,13 +59,13 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 .card {
-  background-color: white;
-  box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+  background-color: var(--card);
+  box-shadow: 2px 2px 12px 1px var(--shadow);
 }
 .card-title {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #034078
+  color: var(--title)
 }
 .chart-container {
   padding-right: 5%;
@@ -119,15 +143,94 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+.switches {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0;
+}
+
 .switch-container {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
   color: white;
-  font-weight: bold;
 }
 
-.switch-container .switch-label {
-  margin-right: .5em;
+.switch-container .ico {
+  margin-right: .6em;
+}
+
+.ico {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  flex: none;
+}
+
+.title {
+  text-align: left;
+}
+.title h1 {
+  margin: .3em 0 0;
+}
+.status {
+  display: flex;
+  align-items: center;
+  margin-bottom: .4em;
+  color: white;
+  font-size: .9rem;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #888;
+  margin-right: .4em;
+}
+.dot.ok { background: #2ecc71; }
+.dot.bad { background: #e74c3c; }
+
+.toolbar {
+  display: flex;
+  gap: .5rem;
+  justify-content: flex-end;
+  align-items: center;
+  padding: .6rem .6rem 0;
+}
+.toolbar button, .toolbar select {
+  height: 40px;
+  min-width: 40px;
+  font-size: 1rem;
+  padding: 0 .7em;
+  border: 1px solid var(--muted);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.toolbar button .ico-play, .toolbar button.paused .ico-pause { display: none; }
+.toolbar button.paused .ico-play { display: block; }
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  padding: 1rem .5rem 0;
+}
+.stat-name {
+  font-weight: bold;
+  color: var(--title);
+}
+.stat-now {
+  font-size: 3rem;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+.stat-sub {
+  font-size: .85rem;
+  color: var(--muted);
 }
