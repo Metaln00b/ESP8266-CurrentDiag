@@ -11,43 +11,49 @@ const STALE_MS = 2000;       // no data for this long -> show warning
 
 // ---- Always-on display ------------------------------------------------------
 // Screen Wake Lock API needs https, so NoSleep.js (video fallback) is used.
+// Browsers only allow it after a user gesture, so it is off by default and
+// not remembered: it has to be switched on again after every page load.
 var noSleep = new NoSleep();
 var wakeLockEnabled = false;
 var toggleEl = document.querySelector("#toggle");
 
+function setAwakeUi(on) {
+  wakeLockEnabled = on;
+  document.body.classList.toggle('awake', on);
+}
+
 function enableWakeLock() {
   return Promise.resolve(noSleep.enable()).then(function () {
-    wakeLockEnabled = true;
-    toggleEl.checked = true;
-    document.body.classList.add('awake');
+    setAwakeUi(true);
+    return true;
   }).catch(function (err) {
     console.log("Wake lock failed", err);
-    wakeLockEnabled = false;
-    toggleEl.checked = false;
-    document.body.classList.remove('awake');
+    setAwakeUi(false);
+    return false;
   });
 }
 
 function disableWakeLock() {
   noSleep.disable();
-  wakeLockEnabled = false;
-  toggleEl.checked = false;
-  document.body.classList.remove('awake');
+  setAwakeUi(false);
 }
 
-toggleEl.addEventListener('click', function (e) {
-  e.preventDefault(); // state is set once enable() actually succeeded
-  if (!wakeLockEnabled) {
-    enableWakeLock();
+toggleEl.addEventListener('change', function () {
+  if (toggleEl.checked) {
+    enableWakeLock().then(function (ok) {
+      if (!ok) toggleEl.checked = false; // refused, show the real state
+    });
   } else {
     disableWakeLock();
   }
-}, false);
+});
 
 // the lock is released when the tab goes to the background, take it again
 document.addEventListener('visibilitychange', function () {
-  if (wakeLockEnabled && !document.hidden) {
-    enableWakeLock();
+  if (toggleEl.checked && !document.hidden) {
+    enableWakeLock().then(function (ok) {
+      if (!ok) toggleEl.checked = false;
+    });
   }
 });
 
@@ -66,7 +72,7 @@ function themeColors() {
 
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-  document.querySelector('#btn-theme').textContent = darkMode ? 'Light' : 'Dark';
+  document.querySelector('#toggle-dark').checked = darkMode;
   var t = themeColors();
   var label = { style: { color: t.text } };
   var title = { style: { color: t.text } };
@@ -95,8 +101,8 @@ function applyTheme() {
   });
 }
 
-document.querySelector('#btn-theme').addEventListener('click', function () {
-  darkMode = !darkMode;
+document.querySelector('#toggle-dark').addEventListener('change', function () {
+  darkMode = this.checked;
   try { localStorage.setItem('theme', darkMode ? 'dark' : 'light'); } catch (e) { }
   applyTheme();
 });
@@ -447,7 +453,10 @@ document.addEventListener('visibilitychange', function () {
 // ---- Controls --------------------------------------------------------------
 document.querySelector('#btn-pause').addEventListener('click', function () {
   paused = !paused;
-  this.textContent = paused ? 'Weiter' : 'Pause';
+  this.classList.toggle('paused', paused);
+  var label = paused ? 'Weiter' : 'Pause';
+  this.title = label;
+  this.setAttribute('aria-label', label);
   if (!paused) rebuildChart();
   updateStatus();
 });

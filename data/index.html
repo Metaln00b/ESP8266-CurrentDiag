@@ -18,32 +18,43 @@
         <h1>CurrentDiag</h1>
         <div class="status"><span id="status-dot" class="dot"></span><span id="status-text">verbinde…</span></div>
       </div>
-      <div class="switch-container">
-        <label class="switch-label">Display Always On</label>
-        <label class="switch">
-          <input type="checkbox" id="toggle">
-          <span class="slider round"></span>
-        </label>
+      <div class="switches">
+        <div class="switch-container" title="Dunkles Design">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <label class="switch">
+            <input type="checkbox" id="toggle-dark" aria-label="Dunkles Design">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div class="switch-container" title="Display immer an">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-6v2h3v2H7v-2h3v-2H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v8h14V7z"/></svg>
+          <label class="switch">
+            <input type="checkbox" id="toggle" aria-label="Display immer an">
+            <span class="slider round"></span>
+          </label>
+        </div>
       </div>
     </div>
     <div class="content">
-      <div class="toolbar">
-        <button id="btn-pause" type="button">Pause</button>
-        <label>Zeitfenster
-          <select id="sel-window">
-            <option value="5">5 s</option>
-            <option value="10">10 s</option>
-            <option value="30" selected>30 s</option>
-            <option value="60">1 min</option>
-            <option value="300">5 min</option>
-            <option value="1800">30 min</option>
-          </select>
-        </label>
-        <button id="btn-csv" type="button">CSV</button>
-        <button id="btn-theme" type="button">Dark</button>
-      </div>
       <div class="card-grid">
         <div class="card">
+          <div class="toolbar">
+            <button id="btn-pause" type="button" title="Pause" aria-label="Pause">
+              <svg class="ico ico-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+              <svg class="ico ico-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+            </button>
+            <select id="sel-window" title="Zeitfenster" aria-label="Zeitfenster">
+              <option value="5">5 s</option>
+              <option value="10">10 s</option>
+              <option value="30" selected>30 s</option>
+              <option value="60">1 min</option>
+              <option value="300">5 min</option>
+              <option value="1800">30 min</option>
+            </select>
+            <button id="btn-csv" type="button" title="CSV herunterladen" aria-label="CSV herunterladen">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3h2v9.2l3.6-3.6L18 10l-6 6-6-6 1.4-1.4 3.6 3.6zM5 18h14v3H5z"/></svg>
+            </button>
+          </div>
           <div class="stats">
             <div class="stat">
               <div class="stat-name">Current mA</div>

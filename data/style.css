@@ -143,17 +143,30 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+.switches {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0;
+}
+
 .switch-container {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
   color: white;
-  font-weight: bold;
 }
 
-.switch-container .switch-label {
-  margin-right: .5em;
+.switch-container .ico {
+  margin-right: .6em;
+}
+
+.ico {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  flex: none;
 }
 
 .title {
@@ -181,20 +194,26 @@ input:checked + .slider:before {
 
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: .6rem;
-  justify-content: center;
+  gap: .5rem;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 1rem;
+  padding: .6rem .6rem 0;
 }
 .toolbar button, .toolbar select {
+  height: 40px;
+  min-width: 40px;
   font-size: 1rem;
-  padding: .5em 1em;
+  padding: 0 .7em;
   border: 1px solid var(--muted);
   border-radius: 6px;
   background: var(--card);
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.toolbar button .ico-play, .toolbar button.paused .ico-pause { display: none; }
+.toolbar button.paused .ico-play { display: block; }
 
 .stats {
   display: flex;
