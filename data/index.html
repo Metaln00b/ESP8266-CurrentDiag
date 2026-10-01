@@ -3,8 +3,9 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
     <title>CurrentDiag Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1 viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="highcharts.js"></script>
@@ -13,7 +14,10 @@
   </head>
   <body>
     <div class="topnav">
-      <h1>CurrentDiag</h1>
+      <div class="title">
+        <h1>CurrentDiag</h1>
+        <div class="status"><span id="status-dot" class="dot"></span><span id="status-text">verbinde…</span></div>
+      </div>
       <div class="switch-container">
         <label class="switch-label">Display Always On</label>
         <label class="switch">
@@ -23,9 +27,34 @@
       </div>
     </div>
     <div class="content">
+      <div class="toolbar">
+        <button id="btn-pause" type="button">Pause</button>
+        <label>Zeitfenster
+          <select id="sel-window">
+            <option value="10">10 s</option>
+            <option value="30" selected>30 s</option>
+            <option value="60">1 min</option>
+            <option value="300">5 min</option>
+            <option value="1800">30 min</option>
+          </select>
+        </label>
+        <button id="btn-csv" type="button">CSV</button>
+        <button id="btn-theme" type="button">Dark</button>
+      </div>
       <div class="card-grid">
         <div class="card">
-          <p class="card-title">Chart</p>
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-name">Current mA</div>
+              <div class="stat-now" id="c-now">–</div>
+              <div class="stat-sub">Min <span id="c-min">–</span> · Max <span id="c-max">–</span> · Avg <span id="c-avg">–</span></div>
+            </div>
+            <div class="stat">
+              <div class="stat-name">Lambda &#955;</div>
+              <div class="stat-now" id="l-now">–</div>
+              <div class="stat-sub">Min <span id="l-min">–</span> · Max <span id="l-max">–</span> · Avg <span id="l-avg">–</span></div>
+            </div>
+          </div>
           <div id="chart-values" class="chart-container"></div>
           <div class="gauges-container">
             <div id="gauge1"></div>
