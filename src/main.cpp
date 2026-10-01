@@ -55,8 +55,40 @@ void getSensorReadings(char *output, size_t outputSize)
     // 0.673 / 1024 = 0.000657227
     float lambda = ((analogRead(A0) * 0.000657227) + 0.683);
 #else
-    float current_mA = random(-80, 120);
-    float lambda = random(6, 14) / 10.0;
+    // Endless cycle: full min -> max -> min sweep, then 5s of random values
+    constexpr float CURRENT_MIN = -80.0, CURRENT_MAX = 120.0;
+    constexpr float LAMBDA_MIN = 0.6, LAMBDA_MAX = 1.3;
+    constexpr unsigned long SWEEP_MS = 20000;
+    constexpr unsigned long RANDOM_MS = 5000;
+    static bool sweeping = true;
+    static unsigned long phaseStart = millis();
+
+    unsigned long elapsed = millis() - phaseStart;
+    float current_mA;
+    float lambda;
+
+    if (sweeping)
+    {
+        if (elapsed >= SWEEP_MS)
+        {
+            sweeping = false;
+            phaseStart = millis();
+        }
+        float frac = (elapsed >= SWEEP_MS) ? 1.0 : (float)elapsed / SWEEP_MS;
+        float tri = (frac < 0.5) ? frac * 2.0 : (1.0 - frac) * 2.0; // 0 -> 1 -> 0
+        current_mA = CURRENT_MIN + tri * (CURRENT_MAX - CURRENT_MIN);
+        lambda = LAMBDA_MIN + tri * (LAMBDA_MAX - LAMBDA_MIN);
+    }
+    else
+    {
+        if (elapsed >= RANDOM_MS)
+        {
+            sweeping = true;
+            phaseStart = millis();
+        }
+        current_mA = random(-80, 120);
+        lambda = random(6, 14) / 10.0;
+    }
 #endif
     char sensor1ValueStr[10];
     char sensor2ValueStr[10];
