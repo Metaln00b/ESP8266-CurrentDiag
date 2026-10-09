@@ -9,7 +9,6 @@
 #include <ElegantOTA.h>
 #include <WiFiUdp.h>
 
-
 const char *ssid = "CurrentDiag";
 const char *pass = "123456789";
 
@@ -52,9 +51,23 @@ constexpr size_t BATCH_SIZE = 640;
 char webBatch[BATCH_SIZE];
 size_t webBatchLen = 0;
 
+// Latest vehicle speed in km/h as sent by the receiver that has the speed
+// sensor wired up (ESP8266-CurrentDiagReceiver, sendSpeedToBase(), every
+// 500ms). Relayed in every UDP packet so all displays get it. The "speed"
+// field is always sent; it's an empty string while no fresh value exists
+// (e.g. that receiver is gone), so displays can show "unknown" explicitly.
+char speedStr[12] = "";
+unsigned long speedRxMs = 0;
+constexpr unsigned long SPEED_STALE_MS = 2000;
+
+bool speedIsFresh()
+{
+    return speedStr[0] != '\0' && millis() - speedRxMs < SPEED_STALE_MS;
+}
+
 void getSensorReadings(char *output, size_t outputSize)
 {
-    StaticJsonDocument<64> readings;
+    StaticJsonDocument<96> readings;
 #ifndef DEBUG
     float current_mA = ina219.getCurrent_mA();
     // Values from afr gauge documentation
@@ -107,6 +120,7 @@ void getSensorReadings(char *output, size_t outputSize)
 
     readings["sensor1"] = sensor1ValueStr;
     readings["sensor2"] = sensor2ValueStr;
+    readings["speed"] = speedIsFresh() ? (const char *)speedStr : "";
 
     serializeJson(readings, output, outputSize);
 
@@ -115,6 +129,34 @@ void getSensorReadings(char *output, size_t outputSize)
                      sensor1ValueStr, sensor2ValueStr);
     if (n > 0 && webBatchLen + n < BATCH_SIZE)
         webBatchLen += n;
+}
+
+// Non-blocking: picks up whatever packets the stations sent since the last
+// loop pass (currently only the receiver's speed), at most a few per pass so
+// the 50ms send cadence isn't disturbed.
+void receiveUdp()
+{
+    for (int i = 0; i < 4; i++)
+    {
+        int size = Udp.parsePacket();
+        if (size <= 0)
+            return;
+
+        int len = Udp.read(packetBuffer, sizeof(packetBuffer) - 1);
+        if (len <= 0)
+            continue;
+        packetBuffer[len] = '\0';
+
+        StaticJsonDocument<64> doc;
+        if (deserializeJson(doc, packetBuffer))
+            continue;
+        const char *speed = doc["speed"] | "";
+        if (speed[0] != '\0')
+        {
+            strlcpy(speedStr, speed, sizeof(speedStr));
+            speedRxMs = millis();
+        }
+    }
 }
 
 void sendUdp(const char *data)
@@ -274,6 +316,8 @@ void loop()
 {
     unsigned long currentMillis = millis();
 
+    receiveUdp();
+
     if ((currentMillis - lastDataTime) > dataTimerDelay)
     {
         getSensorReadings(sensorData, sizeof(sensorData));
@@ -288,8 +332,9 @@ void loop()
         if (events.count() > 0 && webBatchLen > 0 && events.avgPacketsWaiting() < 4 && ESP.getFreeHeap() > 8000)
         {
             webBatch[webBatchLen - 1] = '\0'; // strip trailing comma
-            char payload[BATCH_SIZE + 40];
-            snprintf(payload, sizeof(payload), "{\"dt\":%lu,\"d\":[%s]}", dataTimerDelay, webBatch);
+            char payload[BATCH_SIZE + 64];
+            snprintf(payload, sizeof(payload), "{\"dt\":%lu,\"d\":[%s],\"spd\":\"%s\"}", dataTimerDelay, webBatch,
+                     speedIsFresh() ? speedStr : "");
             events.send(payload, "new_readings", millis());
         }
         webBatchLen = 0;

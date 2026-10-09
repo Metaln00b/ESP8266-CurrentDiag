@@ -341,6 +341,9 @@ function addSamples(msg) {
     shownIdx = Math.max(0, shownIdx - cut);
   }
   lastDataTime = now;
+
+  // Only present while the receiver with the speed sensor is sending
+  setText('spd-now', msg.spd ? fmt(Number(msg.spd), 0) : '–');
 }
 
 function fmt(v, digits) {

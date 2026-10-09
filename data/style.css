@@ -199,6 +199,12 @@ input:checked + .slider:before {
   align-items: center;
   padding: .6rem .6rem 0;
 }
+.toolbar-speed {
+  margin-right: auto; /* keeps the buttons right-aligned */
+  font-size: .85rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
 .toolbar button, .toolbar select {
   height: 40px;
   min-width: 40px;
